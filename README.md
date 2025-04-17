@@ -7,6 +7,7 @@ A Dash application for visualizing relative currency strength across major curre
 - Tracks relative strength of 9 major currencies (USD, EUR, GBP, AUD, NZD, CAD, CHF, JPY, CNY)
 - Interactive date range selection
 - Visualization of cumulative strength changes
+- Correlation heatmap between currencies for the selected period
 
 ## Installation
 
@@ -41,6 +42,10 @@ python CurrencyStrengthDash.py
 ```
 
 Then open your web browser and go to [http://127.0.0.1:8050/](http://127.0.0.1:8050/) to view the dashboard.
+
+The dashboard consists of two main visualizations:
+1. The **Strength Chart** showing the cumulative change in strength for each currency over the selected time period
+2. The **Correlation Heatmap** displaying correlation coefficients between currencies in the selected time range
 
 ## Data Source
 

@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 from dash import Dash, dcc, html, Input, Output
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -59,13 +60,27 @@ app.layout = html.Div(
             allowCross=False,  # Prevent crossover of endpoints
             tooltip={"placement": "bottom", "always_visible": True},
         ),
-        dcc.Graph(id="strength-graph"),
+        html.Div(
+            [
+                html.H2("Strength Chart"),
+                dcc.Graph(id="strength-graph"),
+            ]
+        ),
+        html.Div(
+            [
+                html.H2("Correlation Heatmap"),
+                dcc.Graph(id="correlation-heatmap"),
+            ]
+        ),
     ]
 )
 
 
-@app.callback(Output("strength-graph", "figure"), Input("date-slider", "value"))
-def update_graph(slider_range):
+@app.callback(
+    [Output("strength-graph", "figure"), Output("correlation-heatmap", "figure")],
+    Input("date-slider", "value")
+)
+def update_graphs(slider_range):
     start_idx, end_idx = slider_range
     # Map slider indices to dates
     start_date = dates[start_idx]
@@ -75,17 +90,35 @@ def update_graph(slider_range):
     st_filt = calculate_strength(lr_filt, currencies)
     cum = st_filt.cumsum()
     norm = cum.subtract(cum.iloc[0])
-    # Plot
-    fig = go.Figure()
+    
+    # Strength chart
+    fig1 = go.Figure()
     for c in currencies:
-        fig.add_trace(go.Scatter(x=norm.index, y=norm[c], mode="lines", name=c))
-    fig.update_layout(
+        fig1.add_trace(go.Scatter(x=norm.index, y=norm[c], mode="lines", name=c))
+    fig1.update_layout(
         title=f"Currency Strength: Cumulative Change from {start_date.date()} to {end_date.date()}",
         xaxis_title="Date",
         yaxis_title="Cumulative Change (Relative to Start Date)",
         template="plotly_white",
     )
-    return fig
+    
+    # Correlation heatmap
+    corr_matrix = st_filt.corr()
+    fig2 = px.imshow(
+        corr_matrix,
+        x=currencies,
+        y=currencies,
+        color_continuous_scale="RdBu_r",
+        zmin=-1,
+        zmax=1,
+        text_auto=".2f"
+    )
+    fig2.update_layout(
+        title=f"Currency Correlation Matrix ({start_date.date()} to {end_date.date()})",
+        template="plotly_white",
+    )
+    
+    return fig1, fig2
 
 
 if __name__ == "__main__":
